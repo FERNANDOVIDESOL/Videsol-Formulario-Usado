@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Revisión Vehículo — Videsol</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --gn:#1c4a32;--gnl:#e8f2ec;--gnm:#2d6b4a;
+  --bg:#f0ede6;--sf:#fff;--sf2:#f7f5f0;
+  --bd:#e0ddd5;--bd2:#ccc9bf;
+  --tx:#1a1a14;--tx2:#5a5a4e;--tx3:#9a9a8a;
+  --red:#c0392b;--redb:#fdecea;
+  --r:12px;--rs:7px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;font-size:14px;}
+
+.hdr{background:var(--gn);padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.hdr-logo{font-size:17px;font-weight:600;color:#fff;letter-spacing:-.3px;}
+.hdr-logo span{font-weight:300;opacity:.5;margin-left:6px;font-size:13px;}
+.hdr-date{font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,.45);letter-spacing:.05em;}
+
+.main{max-width:860px;margin:0 auto;padding:24px 16px 80px;}
+
+.card{background:var(--sf);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:14px;}
+.card-title{font-size:10px;font-weight:600;color:var(--gn);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;padding-bottom:8px;border-bottom:1px solid var(--gnl);}
+
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+.g4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:12px;}
+.g5{display:grid;grid-template-columns:repeat(5,1fr);gap:12px;}
+.sp2{grid-column:span 2;}
+
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg label{font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;}
+.fg input,.fg select,.fg textarea{padding:9px 11px;border:1px solid var(--bd);border-radius:var(--rs);background:var(--sf2);color:var(--tx);font-size:13px;font-family:'DM Sans',sans-serif;width:100%;outline:none;transition:border-color .15s,background .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{border-color:var(--gn);background:#fff;}
+.fg textarea{resize:vertical;min-height:70px;}
+.req{color:var(--red);}
+
+.opt-group{display:flex;flex-direction:column;gap:5px;}
+.opt-row{display:grid;grid-template-columns:1fr 1fr;gap:4px 16px;}
+.opt-row.g3c{grid-template-columns:1fr 1fr 1fr;}
+.opt{display:flex;align-items:flex-start;gap:7px;cursor:pointer;padding:5px 8px;border-radius:6px;transition:background .12s;}
+.opt:hover{background:var(--gnl);}
+.opt input{margin-top:2px;accent-color:var(--gn);flex-shrink:0;width:14px;height:14px;cursor:pointer;}
+.opt span{font-size:12px;color:var(--tx);line-height:1.35;}
+.ok-opt{border-top:1px solid var(--bd);margin-top:4px;padding-top:4px;}
+.ok-opt .opt{background:var(--gnl);}
+.ok-opt .opt:hover{background:#d0e8da;}
+.ok-opt .opt span{color:var(--gn);font-weight:500;}
+
+/* CAR DIAGRAM */
+.car-views{display:flex;gap:6px;margin-bottom:12px;flex-wrap:wrap;}
+.view-btn{padding:7px 14px;border-radius:20px;border:1px solid var(--bd2);background:var(--sf);color:var(--tx2);font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s;}
+.view-btn.act{background:var(--gn);color:#fff;border-color:var(--gn);}
+.car-hint{font-size:11px;color:var(--tx3);margin-bottom:10px;}
+.car-img-wrap{position:relative;background:var(--sf2);border:1px solid var(--bd);border-radius:var(--r);overflow:hidden;user-select:none;}
+.car-img-wrap img{display:block;width:100%;height:auto;pointer-events:none;}
+
+.hotspot{position:absolute;transform:translate(-50%,-50%);width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.92);border:2px solid #555;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#333;font-family:'DM Sans',sans-serif;transition:all .15s;box-shadow:0 1px 4px rgba(0,0,0,.3);z-index:10;}
+.hotspot:hover{background:#fff;border-color:var(--red);color:var(--red);transform:translate(-50%,-50%) scale(1.2);}
+.hotspot.sel{background:var(--red);border-color:#922b21;color:#fff;box-shadow:0 2px 8px rgba(192,57,43,.5);}
+
+.sel-list{margin-top:10px;min-height:28px;display:flex;flex-wrap:wrap;gap:5px;}
+.sel-tag{background:#fdecea;border:1px solid #f1a9a0;border-radius:20px;padding:3px 10px;font-size:11px;color:var(--red);font-weight:500;cursor:pointer;}
+.sel-tag:hover{background:#fbd7d4;}
+.no-dmg{font-size:11px;color:var(--tx3);font-style:italic;align-self:center;}
+
+/* TIRES */
+.tires-wrap{display:flex;flex-direction:column;align-items:center;gap:6px;padding:8px 0;}
+.tires-row{display:flex;gap:28px;}
+.tire{width:42px;height:56px;border-radius:7px;border:2.5px solid #aaa;background:transparent;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;transition:all .2s;}
+.tire .t-lbl{font-size:8px;font-weight:700;color:inherit;font-family:'DM Sans',sans-serif;line-height:1;}
+.tire .t-st{font-size:7px;color:inherit;opacity:.85;font-family:'DM Sans',sans-serif;line-height:1.2;text-align:center;}
+.tire.s0{border-color:#bbb;color:#bbb;}
+.tire.s1{background:#1a1a1a;border-color:#000;color:#fff;}
+.tire.s2{background:#7b4a2d;border-color:#5a3420;color:#fff;}
+.tire.s3{background:var(--red);border-color:#922b21;color:#fff;}
+.tire:hover{transform:scale(1.1);}
+.tires-legend{display:flex;gap:12px;margin-top:6px;font-size:10px;color:var(--tx2);flex-wrap:wrap;justify-content:center;}
+.tl-item{display:flex;align-items:center;gap:5px;}
+.tl-dot{width:10px;height:10px;border-radius:2px;border:1.5px solid #aaa;}
+.tl-dot.d1{background:#1a1a1a;border-color:#000;}
+.tl-dot.d2{background:#7b4a2d;border-color:#5a3420;}
+.tl-dot.d3{background:var(--red);border-color:#922b21;}
+
+/* FIRMA */
+.firma-box{border-top:1.5px solid var(--tx2);padding-top:6px;margin-top:8px;}
+.firma-label{font-size:10px;color:var(--tx3);margin-bottom:4px;}
+.firma-name{font-size:12px;font-weight:500;color:var(--tx2);min-height:18px;}
+
+/* ACTIONS */
+.actions{display:flex;gap:10px;margin-top:18px;flex-wrap:wrap;}
+.btn{padding:10px 18px;border-radius:var(--rs);border:1px solid var(--bd2);background:var(--sf);color:var(--tx);font-size:13px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;display:flex;align-items:center;gap:7px;transition:all .15s;}
+.btn:hover{background:var(--sf2);}
+.btn.pri{background:var(--gn);color:#fff;border-color:var(--gn);}
+.btn.pri:hover{background:var(--gnm);}
+
+.err{background:var(--redb);border:1px solid #f1a9a0;border-radius:var(--rs);padding:10px 14px;font-size:13px;color:var(--red);margin-bottom:12px;display:none;}
+.err.show{display:block;}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:center;justify-content:center;z-index:999;}
+.ov.show{display:flex;}
+.pb{background:#fff;border-radius:14px;padding:28px 36px;text-align:center;}
+.ps-spin{width:32px;height:32px;border:3px solid var(--bd);border-top-color:var(--gn);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.pt{font-size:15px;font-weight:600;}
+
+@media(max-width:600px){
+  .g2,.g3,.g4,.g5{grid-template-columns:1fr 1fr;}
+  .sp2{grid-column:span 2;}
+}
+
+/* ================================================================
+   PRINT — A4 vertical, una sola hoja
+   ================================================================ */
+#print-summary{display:none;}
+
+@media print{
+  @page{size:A4 portrait;margin:9mm 11mm;}
+  *{-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  body{background:#fff;}
+  .hdr,.main,.ov{display:none!important;}
+  #print-summary{display:block!important;font-family:Arial,sans-serif;font-size:8.5pt;color:#111;}
+
+  .ps-head{border-bottom:2pt solid #1c4a32;padding-bottom:4pt;margin-bottom:5pt;display:flex;justify-content:space-between;align-items:baseline;}
+  .ps-head h1{font-size:12pt;font-weight:700;color:#1c4a32;}
+  .ps-head p{font-size:8pt;color:#555;}
+  .ps-sec{background:#1c4a32;color:#fff;font-size:7pt;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2pt 5pt;margin:4pt 0 2pt;}
+  .ps-g2{display:grid;grid-template-columns:1fr 1fr;gap:1pt 10pt;margin-bottom:2pt;}
+  .ps-g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:1pt 6pt;margin-bottom:2pt;}
+  .ps-field{font-size:8pt;line-height:1.4;}
+  .ps-field b{color:#1c4a32;}
+  .ps-cols{display:grid;grid-template-columns:1fr 1fr;gap:0 10pt;}
+  .ps-col-title{font-size:7pt;font-weight:700;color:#333;text-transform:uppercase;letter-spacing:.06em;border-bottom:1pt solid #ddd;padding-bottom:1pt;margin-bottom:2pt;margin-top:3pt;}
+  .ps-item{font-size:7.5pt;line-height:1.5;padding-left:8pt;position:relative;}
+  .ps-item::before{content:'•';position:absolute;left:0;color:#c0392b;font-weight:700;}
+  .ps-ok{font-size:7.5pt;color:#1c4a32;font-style:italic;padding-left:8pt;}
+  .ps-neum{display:grid;grid-template-columns:repeat(4,1fr);gap:2pt;margin-bottom:2pt;}
+  .ps-tire{border:1pt solid #999;border-radius:2pt;padding:2pt 3pt;text-align:center;font-size:7pt;}
+  .ps-tire b{display:block;font-size:6pt;color:#777;margin-bottom:1pt;}
+  .ps-tire.sano{background:#1a1a1a;color:#fff;border-color:#000;}
+  .ps-tire.medio{background:#7b4a2d;color:#fff;border-color:#5a3420;}
+  .ps-tire.cambiar{background:#c0392b;color:#fff;border-color:#922b21;}
+  .ps-obs{font-size:8pt;line-height:1.5;border:1pt solid #ddd;padding:3pt 5pt;border-radius:2pt;min-height:16pt;}
+  .ps-econ{display:grid;grid-template-columns:1fr 1fr;gap:4pt;margin-top:4pt;}
+  .ps-econ-box{border:1.5pt solid #1c4a32;border-radius:3pt;padding:3pt 6pt;}
+  .ps-econ-box span{font-size:7pt;color:#555;display:block;}
+  .ps-econ-box strong{font-size:11pt;font-weight:700;color:#1c4a32;}
+  .ps-firma{display:grid;grid-template-columns:1fr 1fr;gap:20pt;margin-top:5pt;padding-top:4pt;border-top:1pt solid #bbb;}
+  .ps-firma-item{font-size:8pt;}
+  .ps-firma-line{border-bottom:1pt solid #555;height:14pt;margin-top:2pt;}
+}
+</style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-logo">Videsol <span>Automotora</span></div>
+  <div class="hdr-date" id="hdr-date"></div>
+</div>
+
+<div class="main">
+  <div class="err" id="err-box"></div>
+
+  <!-- DATOS DEL VEHÍCULO -->
+  <div class="card">
+    <div class="card-title">Datos del vehículo en permuta</div>
+    <div class="g3" style="margin-bottom:12px">
+      <div class="fg sp2"><label>Nombre del cliente <span class="req">*</span></label><input id="f-nombre" placeholder="Apellidos, nombre" oninput="this.value=toUp(this.value)"></div>
+      <div class="fg"><label>Kilometraje <span class="req">*</span></label><input id="f-km" placeholder="85.000 km" oninput="fmtKm(this)"></div>
+    </div>
+    <div class="g4" style="margin-bottom:12px">
+      <div class="fg"><label>Marca <span class="req">*</span></label>
+        <select id="f-marca">
+          <option value="">— Seleccionar —</option>
+          <option>ABARTH</option><option>AUDI</option><option>BMW</option><option>BYD</option>
+          <option>CHANGAN</option><option>CHERRY</option><option>CHEVROLET</option><option>CITROEN</option>
+          <option>DEEPAL</option><option>DFSK</option><option>DONFENG</option><option>FARIZON</option>
+          <option>FIAT</option><option>FORD</option><option>FORTHING</option><option>FOTON</option>
+          <option>GAC</option><option>GEELY</option><option>GREAT WALL</option><option>HONDA</option>
+          <option>HYUNDAI</option><option>IVECO</option><option>JAC</option><option>JEEP</option>
+          <option>JETOUR</option><option>JMC</option><option>KARRY</option><option>KIA</option>
+          <option>KGM</option><option>LAND ROVER</option><option>LEAPMOTOR</option><option>LYNK &amp; CO</option>
+          <option>MASERATI</option><option>MAXUS</option><option>MAZDA</option><option>MERCEDES BENZ</option>
+          <option>MG</option><option>MINI</option><option>MITSUBISHI</option><option>NISSAN</option>
+          <option>NEW GONOW</option><option>OMODA</option><option>OPEL</option><option>PEUGEOT</option>
+          <option>PORSCHE</option><option>RAM</option><option>RENAULT</option><option>RIDDARA</option>
+          <option>SEAT</option><option>SMART</option><option>SUBARU</option><option>SUZUKI</option>
+          <option>TOYOTA</option><option>VICTORY</option><option>VW</option><option>VOLVO</option>
+          <option>XPENG</option><option>ZEEKR</option><option>OTRO</option>
+        </select>
+      </div>
+      <div class="fg"><label>Modelo <span class="req">*</span></label><input id="f-modelo" placeholder="Ej: Sandero" oninput="this.value=toUp(this.value)"></div>
+      <div class="fg"><label>Año <span class="req">*</span></label><input id="f-anio" placeholder="2021" maxlength="4"></div>
+      <div class="fg"><label>Matrícula <span class="req">*</span></label><input id="f-mat" placeholder="ABC 1234" oninput="this.value=toUp(this.value)"></div>
+    </div>
+    <div class="g5">
+      <div class="fg"><label>Color <span class="req">*</span></label>
+        <select id="f-color">
+          <option value="">— Seleccionar —</option>
+          <option>ROJO</option><option>AZUL</option><option>GRIS CLARO</option><option>GRIS OSCURO</option>
+          <option>BLANCO</option><option>AMARILLO</option><option>VIOLETA</option><option>VERDE</option>
+          <option>NEGRO</option><option>MARRÓN</option><option>NARANJA</option><option>ROSA</option>
+          <option>BEIGE</option><option>OCRE</option><option>PLATEADO</option><option>CHAMPAGNE</option>
+        </select>
+      </div>
+      <div class="fg"><label>Padrón</label><input id="f-padron" placeholder="Ej: 123456" oninput="this.value=toUp(this.value)"></div>
+      <div class="fg"><label>Km dist. <small style="text-transform:none;font-weight:400;font-size:9px">últ. cambio</small></label>
+        <input id="f-distrib" placeholder="80.000 km">
+        <label style="display:flex;align-items:center;gap:5px;margin-top:3px;font-size:10px;color:var(--tx2);cursor:pointer;text-transform:none;letter-spacing:0;font-weight:400">
+          <input type="checkbox" id="f-nd" style="width:12px;height:12px;accent-color:var(--gn)" onchange="togND()"> No aplica
+        </label>
+      </div>
+      <div class="fg"><label>Gasto previsto <small style="font-weight:400;text-transform:none;font-size:9px">(U$S)</small> <span class="req">*</span></label><input id="f-gasto" type="number" placeholder="350"></div>
+      <div class="fg"><label>Valor permuta <small style="font-weight:400;text-transform:none;font-size:9px">(U$S)</small> <span class="req">*</span></label><input id="f-permuta" type="number" placeholder="8500"></div>
+    </div>
+  </div>
+
+  <!-- CARROCERÍA -->
+  <div class="card">
+    <div class="card-title">Carrocería — tocá las piezas con daño</div>
+    <p class="car-hint">Seleccioná la vista y hacé clic sobre cada pieza que necesita retoque. Las piezas seleccionadas se marcan en rojo.</p>
+    <div class="car-views">
+      <button class="view-btn act" onclick="setView('frontal',this)">Frontal</button>
+      <button class="view-btn" onclick="setView('lat_izq',this)">Lateral izq.</button>
+      <button class="view-btn" onclick="setView('lat_der',this)">Lateral der.</button>
+      <button class="view-btn" onclick="setView('trasera',this)">Trasera</button>
+      <button class="view-btn" onclick="setView('superior',this)">Superior</button>
+    </div>
+    <div class="car-img-wrap" id="car-wrap">
+      <img id="car-img" src="4.jpg" alt="Vista del vehículo">
+    </div>
+    <div style="margin-top:10px">
+      <div style="font-size:10px;font-weight:600;color:var(--tx2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:6px">Piezas seleccionadas:</div>
+      <div class="sel-list" id="sel-list"><span class="no-dmg">Sin daños seleccionados</span></div>
+    </div>
+  </div>
+
+  <!-- ESTADO TÉCNICO -->
+  <div class="card">
+    <div class="card-title">Estado técnico</div>
+    <div class="g3">
+
+      <!-- Col 1 -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">Parabrisas <span class="req">*</span></div>
+        <div class="opt-group" id="g-par">
+          <label class="opt"><input type="radio" name="par" value="Sano"><span>Sano</span></label>
+          <label class="opt"><input type="radio" name="par" value="Roto, no afecta la visión"><span>Roto, no afecta la visión</span></label>
+          <label class="opt"><input type="radio" name="par" value="Debe cambiarse"><span>Debe cambiarse</span></label>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px;margin-top:14px">Juego de llaves <span class="req">*</span></div>
+        <div class="opt-group" id="g-llaves">
+          <label class="opt"><input type="radio" name="llaves" value="Solo tiene 1"><span>Solo tiene 1</span></label>
+          <label class="opt"><input type="radio" name="llaves" value="Tiene ambas llaves"><span>Tiene ambas llaves</span></label>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px;margin-top:14px">Herramientas <span class="req">*</span></div>
+        <div class="opt-group" id="g-herr">
+          <label class="opt"><input type="checkbox" id="h1" value="Falta el gato"><span>Falta el gato</span></label>
+          <label class="opt"><input type="checkbox" id="h2" value="Falta auxiliar de rueda"><span>Falta auxiliar de rueda</span></label>
+          <label class="opt"><input type="checkbox" id="h3" value="Falta llave de ruedas"><span>Falta llave de ruedas</span></label>
+          <div class="ok-opt"><label class="opt"><input type="checkbox" id="h-ok" value="Todo OK" onchange="togOkHerr(this)"><span>✓ Todo OK, revisado</span></label></div>
+        </div>
+      </div>
+
+      <!-- Col 2: Neumáticos visual -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">Neumáticos — clic para cambiar estado <span class="req">*</span></div>
+        <div class="tires-wrap">
+          <div class="tires-row">
+            <div class="tire s0" id="tire-FL" onclick="cycleTire('FL')" title="Delantera izquierda">
+              <span class="t-lbl">DEL</span><span class="t-st" id="ts-FL">—</span><span class="t-lbl">IZQ</span>
+            </div>
+            <div class="tire s0" id="tire-FR" onclick="cycleTire('FR')" title="Delantera derecha">
+              <span class="t-lbl">DEL</span><span class="t-st" id="ts-FR">—</span><span class="t-lbl">DER</span>
+            </div>
+          </div>
+          <div class="tires-row">
+            <div class="tire s0" id="tire-RL" onclick="cycleTire('RL')" title="Trasera izquierda">
+              <span class="t-lbl">TRA</span><span class="t-st" id="ts-RL">—</span><span class="t-lbl">IZQ</span>
+            </div>
+            <div class="tire s0" id="tire-RR" onclick="cycleTire('RR')" title="Trasera derecha">
+              <span class="t-lbl">TRA</span><span class="t-st" id="ts-RR">—</span><span class="t-lbl">DER</span>
+            </div>
+          </div>
+        </div>
+        <div class="tires-legend">
+          <div class="tl-item"><div class="tl-dot"></div>Sin estado</div>
+          <div class="tl-item"><div class="tl-dot d1"></div>Sano</div>
+          <div class="tl-item"><div class="tl-dot d2"></div>Medio uso</div>
+          <div class="tl-item"><div class="tl-dot d3"></div>Cambiar</div>
+        </div>
+      </div>
+
+      <!-- Col 3 -->
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">Revisión interior <span class="req">*</span></div>
+        <div class="opt-group" id="g-ri">
+          <label class="opt"><input type="checkbox" value="Falla cinturón de seguridad"><span>Falla cinturón de seguridad</span></label>
+          <label class="opt"><input type="checkbox" value="Visera rota"><span>Visera rota</span></label>
+          <label class="opt"><input type="checkbox" value="Regulación de asiento no funciona"><span>Reg. de asiento no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Mal estado tapizado y/o moquette"><span>Mal estado tapizado / moquette</span></label>
+          <label class="opt"><input type="checkbox" value="Tapizados manchados, prever limpieza"><span>Manchados, prever limpieza</span></label>
+          <div class="ok-opt"><label class="opt"><input type="checkbox" id="ri-ok" value="Todo OK" onchange="togOkGroup(this,'g-ri')"><span>✓ Todo OK</span></label></div>
+        </div>
+
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px;margin-top:14px">Bajo el capot <span class="req">*</span></div>
+        <div class="opt-group" id="g-bc">
+          <label class="opt"><input type="checkbox" value="Pérdidas de fluidos visibles"><span>Pérdidas de fluidos visibles</span></label>
+          <label class="opt"><input type="checkbox" value="Nivel / aspecto aceite motor incorrecto"><span>Nivel / aspecto aceite incorrecto</span></label>
+          <label class="opt"><input type="checkbox" value="Agua de radiador anormal"><span>Agua de radiador anormal</span></label>
+          <label class="opt"><input type="checkbox" value="Nivel bajo de líquido de frenos"><span>Nivel bajo líquido de frenos</span></label>
+          <div class="ok-opt"><label class="opt"><input type="checkbox" id="bc-ok" value="Todo OK" onchange="togOkGroup(this,'g-bc')"><span>✓ Todo OK</span></label></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2" style="margin-top:16px;padding-top:14px;border-top:1px solid var(--bd)">
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">Prueba de manejo <span class="req">*</span></div>
+        <div class="opt-group" id="g-pm">
+          <label class="opt"><input type="checkbox" value="Embrague: duro / patina / trépida / ruido"><span>Embrague: duro / patina / trépida / ruido</span></label>
+          <label class="opt"><input type="checkbox" value="Ruido homocinética al doblar"><span>Ruido homocinética al doblar</span></label>
+          <label class="opt"><input type="checkbox" value="Ruido / vibración suspensión / dirección"><span>Ruido / vibración suspensión / dirección</span></label>
+          <label class="opt"><input type="checkbox" value="Ruido o dificultad en caja de cambios"><span>Ruido / dificultad caja de cambios</span></label>
+          <label class="opt"><input type="checkbox" value="Ruido al frenar"><span>Ruido al frenar</span></label>
+          <label class="opt"><input type="checkbox" value="Ruido o vibración de motor"><span>Ruido o vibración de motor</span></label>
+          <div class="ok-opt"><label class="opt"><input type="checkbox" id="pm-ok" value="Todo OK" onchange="togOkGroup(this,'g-pm')"><span>✓ Todo OK</span></label></div>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:600;color:var(--tx2);margin-bottom:6px">Prueba estática <span class="req">*</span></div>
+        <div class="opt-group" id="g-pe">
+          <label class="opt"><input type="checkbox" value="Motor de arranque ruidoso"><span>Motor de arranque ruidoso</span></label>
+          <label class="opt"><input type="checkbox" value="Calefacción no funciona"><span>Calefacción no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Forzador de aire no funciona"><span>Forzador de aire no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Aire acondicionado no funciona"><span>Aire acondicionado no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Luces / señaleros no funcionan"><span>Luces / señaleros no funcionan</span></label>
+          <label class="opt"><input type="checkbox" value="Fallas cierre / bloqueos"><span>Fallas cierre / bloqueos</span></label>
+          <label class="opt"><input type="checkbox" value="Fallas alzacristal"><span>Fallas alzacristal</span></label>
+          <label class="opt"><input type="checkbox" value="Radio no funciona"><span>Radio no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Falla espejos eléctricos"><span>Falla espejos eléctricos</span></label>
+          <label class="opt"><input type="checkbox" value="Bocina no funciona"><span>Bocina no funciona</span></label>
+          <label class="opt"><input type="checkbox" value="Limpiaparabrisas no funcionan"><span>Limpiaparabrisas no funcionan</span></label>
+          <div class="ok-opt"><label class="opt"><input type="checkbox" id="pe-ok" value="Todo OK" onchange="togOkGroup(this,'g-pe')"><span>✓ Todo OK</span></label></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- OBSERVACIONES + VENDEDOR -->
+  <div class="card">
+    <div class="card-title">Observaciones y firma</div>
+    <div class="g2">
+      <div class="fg"><label>Observaciones <span class="req">*</span></label><textarea id="f-obs" rows="4" placeholder="Detalles adicionales, condiciones especiales..."></textarea></div>
+      <div>
+        <div class="fg" style="margin-bottom:16px">
+          <label>Vendedor <span class="req">*</span></label>
+          <select id="f-vend" onchange="updFirma()">
+            <option value="">— Seleccionar —</option>
+            <option>MARIA</option><option>TATIANA</option><option>EMANUEL</option><option>CACO</option>
+            <option>FERNANDO</option><option>LUIS</option><option>WALTER</option><option>ALAIN</option>
+          </select>
+        </div>
+        <div class="firma-label">Firma del vendedor</div>
+        <div class="firma-box"><div class="firma-name" id="firma-name"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="actions">
+    <button class="btn pri" onclick="imprimir()">&#128438; Imprimir / Guardar PDF</button>
+    <button class="btn" onclick="generarWord()">&#11015; Generar Word</button>
+    <button class="btn" onclick="limpiar()">&#8635; Limpiar</button>
+  </div>
+</div>
+
+<!-- RESUMEN PARA IMPRESIÓN (oculto en pantalla) -->
+<div id="print-summary"></div>
+
+<div class="ov" id="ov">
+  <div class="pb">
+    <div class="ps-spin"></div>
+    <div class="pt" id="ov-t">Generando documento...</div>
+  </div>
+</div>
+
+<script>
+// ─── UTILS ───────────────────────────────────────────────────
+function toUp(s){return s.toUpperCase();}
+function fmtKm(inp){
+  var r=inp.value.replace(/[^0-9]/g,'');
+  if(!r){inp.value='';return;}
+  inp.value=parseInt(r).toLocaleString('de-DE')+' km';
+}
+function gs(id){var e=document.getElementById(id);if(!e)return'';return e.tagName==='SELECT'?e.options[e.selectedIndex].value:e.value;}
+
+// ─── DATE ─────────────────────────────────────────────────────
+(function(){
+  var d=new Date(),ms=['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  document.getElementById('hdr-date').textContent=d.getDate()+' '+ms[d.getMonth()]+' '+d.getFullYear();
+})();
+
+// ─── TOGGLE HELPERS ──────────────────────────────────────────
+function togND(){
+  var nd=document.getElementById('f-nd'),fd=document.getElementById('f-distrib');
+  fd.disabled=nd.checked;fd.value=nd.checked?'No aplica':'';
+}
+function togOkGroup(cb,gid){
+  if(!cb.checked)return;
+  document.querySelectorAll('#'+gid+' input[type=checkbox]').forEach(function(i){if(i!==cb)i.checked=false;});
+}
+function togOkHerr(cb){
+  if(!cb.checked)return;
+  ['h1','h2','h3'].forEach(function(id){document.getElementById(id).checked=false;});
+}
+function updFirma(){document.getElementById('firma-name').textContent=gs('f-vend');}
+
+// ─── CAR DIAGRAM ─────────────────────────────────────────────
+var SELECTED=new Set();
+var currentView='frontal';
+
+var VIEWS={
+  frontal:{img:'4.jpg',pieces:[
+    {n:1,label:'Capot',x:50,y:32},
+    {n:2,label:'Paragolpe del.',x:50,y:80},
+    {n:3,label:'Espejo der.',x:14,y:41},
+    {n:4,label:'Espejo izq.',x:86,y:41}
+  ]},
+  lat_izq:{img:'1.jpg',pieces:[
+    {n:9,label:'Guard. del. izq.',x:20,y:52},
+    {n:8,label:'Puerta del. izq.',x:42,y:60},
+    {n:6,label:'Puerta tras. izq.',x:64,y:57},
+    {n:7,label:'Guard. tras. izq.',x:83,y:51},
+    {n:5,label:'Zócalo izq.',x:50,y:85}
+  ]},
+  lat_der:{img:'3.jpg',pieces:[
+    {n:14,label:'Guard. tras. der.',x:18,y:50},
+    {n:11,label:'Puerta tras. der.',x:37,y:58},
+    {n:12,label:'Puerta del. der.',x:55,y:58},
+    {n:10,label:'Guard. del. der.',x:82,y:51},
+    {n:13,label:'Zócalo der.',x:50,y:85}
+  ]},
+  trasera:{img:'5.jpg',pieces:[
+    {n:15,label:'Baúl',x:50,y:37},
+    {n:16,label:'Paragolpe tras.',x:50,y:74}
+  ]},
+  superior:{img:'2.jpg',pieces:[
+    {n:17,label:'Techo',x:50,y:45}
+  ]}
+};
+
+var LABELS={};
+Object.values(VIEWS).forEach(function(v){v.pieces.forEach(function(p){LABELS[p.n]=p.label;});});
+
+function setView(v,btn){
+  currentView=v;
+  document.querySelectorAll('.view-btn').forEach(function(b){b.classList.remove('act');});
+  btn.classList.add('act');
+  document.getElementById('car-img').src=VIEWS[v].img;
+  renderHotspots(v);
+}
+
+function renderHotspots(v){
+  var wrap=document.getElementById('car-wrap');
+  wrap.querySelectorAll('.hotspot').forEach(function(h){h.remove();});
+  VIEWS[v].pieces.forEach(function(p){
+    var btn=document.createElement('button');
+    btn.className='hotspot'+(SELECTED.has(p.n)?' sel':'');
+    btn.style.left=p.x+'%';
+    btn.style.top=p.y+'%';
+    btn.textContent=p.n;
+    btn.title=p.label;
+    btn.onclick=function(e){e.preventDefault();togglePiece(p.n);};
+    wrap.appendChild(btn);
+  });
+}
+
+function togglePiece(n){
+  if(SELECTED.has(n)){SELECTED.delete(n);}else{SELECTED.add(n);}
+  renderHotspots(currentView);
+  updSelList();
+}
+
+function updSelList(){
+  var list=document.getElementById('sel-list');
+  if(SELECTED.size===0){list.innerHTML='<span class="no-dmg">Sin daños seleccionados</span>';return;}
+  var nums=Array.from(SELECTED).sort(function(a,b){return a-b;});
+  list.innerHTML=nums.map(function(n){
+    return'<span class="sel-tag" onclick="togglePiece('+n+')" title="Clic para quitar">'+n+'. '+LABELS[n]+' &#x2715;</span>';
+  }).join('');
+}
+
+renderHotspots('frontal');
+
+// ─── NEUMÁTICOS ──────────────────────────────────────────────
+var TIRE_STATES={FL:0,FR:0,RL:0,RR:0};
+var TIRE_LABELS=['—','Sano','Medio uso','Cambiar'];
+var TIRE_CLS=['s0','s1','s2','s3'];
+
+function cycleTire(pos){
+  TIRE_STATES[pos]=(TIRE_STATES[pos]+1)%4;
+  var s=TIRE_STATES[pos];
+  document.getElementById('tire-'+pos).className='tire '+TIRE_CLS[s];
+  document.getElementById('ts-'+pos).textContent=TIRE_LABELS[s];
+}
+
+// ─── COLLECT DATA ────────────────────────────────────────────
+function getRadio(name){var s=document.querySelector('input[name="'+name+'"]:checked');return s?s.value:'';}
+function getChecks(gid){
+  var v=[];
+  document.querySelectorAll('#'+gid+' input[type=checkbox]:checked').forEach(function(c){v.push(c.value);});
+  return v;
+}
+function getCarroceria(){
+  if(SELECTED.size===0)return[];
+  return Array.from(SELECTED).sort(function(a,b){return a-b;}).map(function(n){return n+'. '+LABELS[n];});
+}
+function fmtListArr(arr){
+  if(!arr||arr.length===0)return null;
+  if(arr.includes('Todo OK'))return'Todo OK';
+  return arr.filter(function(x){return x!=='Todo OK';});
+}
+
+// ─── VALIDATE ────────────────────────────────────────────────
+function validate(){
+  var m=[];
+  if(!gs('f-nombre'))m.push('Nombre del cliente');
+  if(!gs('f-marca'))m.push('Marca');
+  if(!gs('f-modelo'))m.push('Modelo');
+  if(!gs('f-anio'))m.push('Año');
+  if(!gs('f-mat'))m.push('Matrícula');
+  if(!gs('f-color'))m.push('Color');
+  if(!gs('f-km'))m.push('Kilometraje');
+  if(!gs('f-gasto'))m.push('Gasto previsto');
+  if(!gs('f-permuta'))m.push('Valor acordado de permuta');
+  if(!getRadio('par'))m.push('Estado del parabrisas');
+  if(!getRadio('llaves'))m.push('Juego de llaves');
+  if(!gs('f-obs'))m.push('Observaciones');
+  if(!gs('f-vend'))m.push('Vendedor');
+  if(m.length){
+    var e=document.getElementById('err-box');
+    e.textContent='⚠ Falta completar: '+m.join(' · ');
+    e.classList.add('show');
+    window.scrollTo(0,0);
+    return false;
+  }
+  document.getElementById('err-box').classList.remove('show');
+  return true;
+}
+
+// ─── PRINT SUMMARY ──────────────────────────────────────────
+function buildPrintSummary(){
+  var d=new Date();
+  var ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fecha=d.getDate()+' de '+ms[d.getMonth()]+' de '+d.getFullYear();
+
+  var carr=getCarroceria();
+  var herrArr=fmtListArr(getChecks('g-herr'));
+  var riArr=fmtListArr(getChecks('g-ri'));
+  var bcArr=fmtListArr(getChecks('g-bc'));
+  var pmArr=fmtListArr(getChecks('g-pm'));
+  var peArr=fmtListArr(getChecks('g-pe'));
+
+  function items(arr){
+    if(!arr)return'<p class="ps-ok">&#10003; Sin observaciones</p>';
+    if(arr==='Todo OK')return'<p class="ps-ok">&#10003; Todo OK</p>';
+    return arr.map(function(i){return'<p class="ps-item">'+esc(i)+'</p>';}).join('');
+  }
+
+  var tireHTML='<div class="ps-neum">';
+  [{k:'FL',l:'Del. Izq'},{k:'FR',l:'Del. Der'},{k:'RL',l:'Tras. Izq'},{k:'RR',l:'Tras. Der'}].forEach(function(t){
+    var s=TIRE_STATES[t.k];
+    var cls=s===1?'sano':s===2?'medio':s===3?'cambiar':'';
+    var txt=s===0?'Sin estado':TIRE_LABELS[s];
+    tireHTML+='<div class="ps-tire '+cls+'"><b>'+t.l+'</b>'+txt+'</div>';
+  });
+  tireHTML+='</div>';
+
+  var h='';
+  h+='<div class="ps-head"><h1>VIDESOL &mdash; Revisión de Vehículo en Permuta</h1><p>'+fecha+'&nbsp;&nbsp;&middot;&nbsp;&nbsp;Vendedor: '+esc(gs('f-vend')||'—')+'</p></div>';
+
+  h+='<div class="ps-sec">Datos del vehículo</div>';
+  h+='<div class="ps-g3">';
+  h+='<div class="ps-field"><b>Cliente:</b> '+esc(gs('f-nombre')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Veh&iacute;culo:</b> '+esc(gs('f-marca')||'—')+' '+esc(gs('f-modelo')||'—')+' '+esc(gs('f-anio')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Matr&iacute;cula:</b> '+esc(gs('f-mat')||'—')+'</div>';
+  h+='</div>';
+  h+='<div class="ps-g3">';
+  h+='<div class="ps-field"><b>Color:</b> '+esc(gs('f-color')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Km:</b> '+esc(gs('f-km')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Padr&oacute;n:</b> '+esc(gs('f-padron')||'—')+'</div>';
+  h+='</div>';
+
+  h+='<div class="ps-sec">Estado general</div>';
+  h+='<div class="ps-g3">';
+  h+='<div class="ps-field"><b>Parabrisas:</b> '+esc(getRadio('par')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Llaves:</b> '+esc(getRadio('llaves')||'—')+'</div>';
+  h+='<div class="ps-field"><b>Km distrib.:</b> '+esc(gs('f-distrib')||'—')+'</div>';
+  h+='</div>';
+  h+='<div class="ps-field" style="margin-bottom:2pt"><b>Neum&aacute;ticos:</b></div>'+tireHTML;
+
+  h+='<div class="ps-sec">Carrocer&iacute;a y mec&aacute;nica</div>';
+  h+='<div class="ps-cols">';
+  h+='<div>';
+  h+='<div class="ps-col-title">Carrocer&iacute;a</div>';
+  if(carr.length===0){h+='<p class="ps-ok">&#10003; Sin da&ntilde;os seleccionados</p>';}
+  else{h+=carr.map(function(i){return'<p class="ps-item">'+esc(i)+'</p>';}).join('');}
+  h+='<div class="ps-col-title">Prueba de manejo</div>';
+  h+=items(pmArr);
+  h+='</div>';
+  h+='<div>';
+  h+='<div class="ps-col-title">Prueba est&aacute;tica</div>';
+  h+=items(peArr);
+  h+='<div class="ps-col-title">Revisi&oacute;n interior</div>';
+  h+=items(riArr);
+  h+='</div>';
+  h+='</div>';
+
+  h+='<div class="ps-sec">Bajo el capot</div>';
+  h+=items(bcArr);
+
+  h+='<div class="ps-sec">Herramientas</div>';
+  if(!herrArr){h+='<p class="ps-ok">&#10003; Sin faltas</p>';}
+  else if(herrArr==='Todo OK'){h+='<p class="ps-ok">&#10003; Todo OK, revisado</p>';}
+  else{h+=herrArr.map(function(i){return'<p class="ps-item">'+esc(i)+'</p>';}).join('');}
+
+  h+='<div class="ps-sec">Observaciones</div>';
+  h+='<div class="ps-obs">'+esc(gs('f-obs')||'—')+'</div>';
+
+  h+='<div class="ps-econ">';
+  h+='<div class="ps-econ-box"><span>Gasto previsto de preparaci&oacute;n</span><strong>U$S '+esc(gs('f-gasto')||'—')+'</strong></div>';
+  h+='<div class="ps-econ-box"><span>Valor acordado de permuta</span><strong>U$S '+esc(gs('f-permuta')||'—')+'</strong></div>';
+  h+='</div>';
+
+  h+='<div class="ps-firma">';
+  h+='<div class="ps-firma-item"><div>Vendedor: '+esc(gs('f-vend')||'—')+'</div><div class="ps-firma-line"></div></div>';
+  h+='<div class="ps-firma-item"><div>Firma del cliente</div><div class="ps-firma-line"></div></div>';
+  h+='</div>';
+
+  document.getElementById('print-summary').innerHTML=h;
+}
+
+function imprimir(){
+  buildPrintSummary();
+  window.print();
+}
+
+window.addEventListener('beforeprint',buildPrintSummary);
+
+// ─── WORD GENERATION ────────────────────────────────────────
+async function generarWord(){
+  if(!validate())return;
+  var d=new Date();
+  var ms=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
+  var fecha=d.getDate()+' de '+ms[d.getMonth()]+' de '+d.getFullYear();
+  var tireStr=['FL','FR','RL','RR'].map(function(p){
+    var lbl={FL:'Del.Izq',FR:'Del.Der',RL:'Tra.Izq',RR:'Tra.Der'}[p];
+    var s=TIRE_STATES[p];return lbl+':'+(s===0?'S/E':TIRE_LABELS[s]);
+  }).join(' | ');
+  var data={
+    fecha:fecha,nombre:gs('f-nombre'),marca:gs('f-marca'),modelo:gs('f-modelo'),
+    anio:gs('f-anio'),matricula:gs('f-mat'),padron:gs('f-padron')||'—',
+    color:gs('f-color'),km:gs('f-km'),gasto:'U$S '+gs('f-gasto'),
+    permuta:'U$S '+gs('f-permuta'),distrib:gs('f-distrib')||'No registrado',
+    parabrisas:getRadio('par'),llaves:getRadio('llaves'),neumaticos:tireStr,
+    carroceria:getCarroceria(),herramientas:getChecks('g-herr'),
+    interior:getChecks('g-ri'),capot:getChecks('g-bc'),
+    manejo:getChecks('g-pm'),estatica:getChecks('g-pe'),
+    observaciones:gs('f-obs'),vendedor:gs('f-vend')
+  };
+  document.getElementById('ov').classList.add('show');
+  document.getElementById('ov-t').textContent='Generando documento Word...';
+  try{
+    var resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:600,messages:[{role:'user',content:buildPrompt(data)}]})
+    });
+    var apiData=await resp.json();
+    var text=apiData.content&&apiData.content[0]?apiData.content[0].text:'';
+    var clean=text.replace(/```json|```/g,'').trim();
+    var docData;try{docData=JSON.parse(clean);}catch(e){docData=null;}
+    await buildAndDownloadDocx(data,docData?docData.resumen:null);
+  }catch(e){await buildAndDownloadDocx(data,null);}
+  document.getElementById('ov').classList.remove('show');
+}
+
+function buildPrompt(data){
+  var car=data.carroceria.length>0?data.carroceria.join(', '):'Sin daños';
+  var fa=function(arr){if(!arr||arr.length===0)return'OK';if(arr.includes('Todo OK'))return'Todo OK';return arr.filter(function(x){return x!=='Todo OK';}).join(', ');};
+  return'Sos asistente de automotora uruguaya. Resumé en 2 líneas (sin listas, español rioplatense) el estado del vehículo en permuta:\nVehículo: '+data.marca+' '+data.modelo+' '+data.anio+' · '+data.km+'\nCarrocería: '+car+'\nNeum: '+data.neumaticos+'\nManejo: '+fa(data.manejo)+' | Estática: '+fa(data.estatica)+'\nGasto: '+data.gasto+' | Permuta: '+data.permuta+'\nRespondé SOLO JSON: {"resumen":"..."}';
+}
+
+async function buildAndDownloadDocx(data,resumen){
+  var c=buildWordContent(data,resumen);
+  downloadBlob(createDocxBlob(c),'Permuta_'+data.nombre.split(' ')[0]+'_'+data.matricula+'.docx');
+}
+
+function fmtW(arr){
+  if(!arr||arr.length===0)return'Todo OK';
+  if(arr.includes('Todo OK'))return'Todo OK';
+  return arr.filter(function(x){return x!=='Todo OK';}).join('; ');
+}
+
+function buildWordContent(data,resumen){
+  var car=data.carroceria.length>0?data.carroceria.join(', '):'Sin daños en carrocería';
+  var sum=resumen||('Vehículo '+data.marca+' '+data.modelo+' '+data.anio+' con '+data.km+'. Gasto: '+data.gasto+'. Permuta: '+data.permuta+'.');
+  return{fecha:data.fecha,nombre:data.nombre,marca:data.marca,modelo:data.modelo,anio:data.anio,matricula:data.matricula,padron:data.padron,color:data.color,km:data.km,gasto:data.gasto,permuta:data.permuta,distrib:data.distrib,parabrisas:data.parabrisas,llaves:data.llaves,neumaticos:data.neumaticos,carroceria:car,herramientas:fmtW(data.herramientas),interior:fmtW(data.interior),capot:fmtW(data.capot),manejo:fmtW(data.manejo),estatica:fmtW(data.estatica),observaciones:data.observaciones,vendedor:data.vendedor,resumen:sum};
+}
+
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function createDocxBlob(c){
+  var docXml=buildDocXml(c);
+  var files={
+    '_rels/.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>',
+    'word/_rels/document.xml.rels':'<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>',
+    'word/document.xml':docXml,
+    'word/styles.xml':'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:rPrDefault></w:docDefaults></w:styles>',
+    '[Content_Types].xml':'<?xml version="1.0" encoding="UTF-8"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/></Types>'
+  };
+  return zipFiles(files);
+}
+
+function row2(label,value){
+  var cell=function(txt,bold,shade){
+    var b=bold?'<w:b/>':'',shd=shade?'<w:shd w:val="clear" w:color="auto" w:fill="'+shade+'"/>':'';
+    return'<w:tc><w:tcPr><w:tcW w:w="4500" w:type="dxa"/>'+shd+'<w:tcMar><w:top w:w="60" w:type="dxa"/><w:bottom w:w="60" w:type="dxa"/><w:left w:w="80" w:type="dxa"/><w:right w:w="80" w:type="dxa"/></w:tcMar></w:tcPr><w:p><w:pPr><w:spacing w:before="0" w:after="0"/></w:pPr><w:r><w:rPr>'+b+'<w:sz w:val="16"/><w:szCs w:val="16"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr><w:t xml:space="preserve">'+escW(txt)+'</w:t></w:r></w:p></w:tc>';
+  };
+  return'<w:tr><w:trPr><w:trHeight w:val="280"/></w:trPr>'+cell(label,true,'EBF3EC')+cell(value,false,'')+'</w:tr>';
+}
+function escW(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function secH(t){return'<w:p><w:pPr><w:spacing w:before="100" w:after="40"/><w:shd w:val="clear" w:color="auto" w:fill="1c4a32"/></w:pPr><w:r><w:rPr><w:b/><w:color w:val="FFFFFF"/><w:sz w:val="17"/><w:szCs w:val="17"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr><w:t>'+escW(t)+'</w:t></w:r></w:p>';}
+
+function buildDocXml(c){
+  var tbl=function(ct){return'<w:tbl><w:tblPr><w:tblW w:w="9000" w:type="dxa"/><w:tblBorders><w:top w:val="single" w:sz="2" w:color="CCCCCC"/><w:left w:val="single" w:sz="2" w:color="CCCCCC"/><w:bottom w:val="single" w:sz="2" w:color="CCCCCC"/><w:right w:val="single" w:sz="2" w:color="CCCCCC"/><w:insideH w:val="single" w:sz="2" w:color="CCCCCC"/><w:insideV w:val="single" w:sz="2" w:color="CCCCCC"/></w:tblBorders></w:tblPr>'+ct+'</w:tbl>';};
+  var sp='<w:p><w:pPr><w:spacing w:before="0" w:after="80"/></w:pPr></w:p>';
+  var body='';
+  body+='<w:p><w:pPr><w:spacing w:before="0" w:after="80"/></w:pPr><w:r><w:rPr><w:b/><w:sz w:val="28"/><w:szCs w:val="28"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="1c4a32"/></w:rPr><w:t>VIDESOL AUTOMOTORA</w:t></w:r><w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="888888"/></w:rPr><w:t xml:space="preserve">     ·     Revisión de vehículo en permuta</w:t></w:r></w:p>';
+  body+='<w:p><w:pPr><w:spacing w:before="0" w:after="120"/></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:szCs w:val="17"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="555555"/></w:rPr><w:t xml:space="preserve">Fecha: '+escW(c.fecha)+'     ·     Vendedor: '+escW(c.vendedor)+'</w:t></w:r></w:p>';
+  body+=secH('Datos del vehículo');
+  body+=tbl(row2('Cliente',c.nombre)+row2('Marca / Modelo',c.marca+' '+c.modelo+' '+c.anio)+row2('Matrícula',c.matricula)+row2('Padrón',c.padron)+row2('Color',c.color)+row2('Kilometraje',c.km)+row2('Km último cambio distrib.',c.distrib)+row2('Gasto previsto',c.gasto)+row2('Valor acordado de permuta',c.permuta));
+  body+=sp;
+  body+=secH('Carrocería');
+  body+=tbl(row2('Daños detectados',c.carroceria));
+  body+=sp;
+  body+=secH('Estado técnico');
+  body+=tbl(row2('Parabrisas',c.parabrisas)+row2('Juego de llaves',c.llaves)+row2('Neumáticos',c.neumaticos)+row2('Herramientas',c.herramientas)+row2('Revisión interior',c.interior)+row2('Bajo el capot',c.capot)+row2('Prueba de manejo',c.manejo)+row2('Prueba estática',c.estatica));
+  body+=sp;
+  body+=secH('Observaciones');
+  body+='<w:p><w:pPr><w:spacing w:before="60" w:after="120"/></w:pPr><w:r><w:rPr><w:sz w:val="18"/><w:szCs w:val="18"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/></w:rPr><w:t xml:space="preserve">'+escW(c.observaciones)+'</w:t></w:r></w:p>';
+  if(c.resumen){body+=secH('Resumen ejecutivo');body+='<w:p><w:pPr><w:spacing w:before="60" w:after="120"/></w:pPr><w:r><w:rPr><w:i/><w:sz w:val="17"/><w:szCs w:val="17"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="444444"/></w:rPr><w:t xml:space="preserve">'+escW(c.resumen)+'</w:t></w:r></w:p>';}
+  body+='<w:p><w:pPr><w:spacing w:before="200" w:after="0"/></w:pPr></w:p>';
+  body+='<w:p><w:pPr><w:spacing w:before="0" w:after="0"/><w:pBdr><w:top w:val="single" w:sz="4" w:space="1" w:color="AAAAAA"/></w:pBdr></w:pPr><w:r><w:rPr><w:sz w:val="17"/><w:szCs w:val="17"/><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:color w:val="555555"/></w:rPr><w:t xml:space="preserve">'+escW(c.vendedor)+'     ·     Firma: _________________________</w:t></w:r></w:p>';
+  return'<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:wpc="http://schemas.microsoft.com/office/word/2010/wordprocessingCanvas" xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:m="http://schemas.openxmlformats.org/officeDocument/2006/math" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:wp14="http://schemas.microsoft.com/office/word/2010/wordprocessingDrawing" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:w10="urn:schemas-microsoft-com:office:word" xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:w14="http://schemas.microsoft.com/office/word/2010/wordml" xmlns:wpg="http://schemas.microsoft.com/office/word/2010/wordprocessingGroup" xmlns:wpi="http://schemas.microsoft.com/office/word/2010/wordprocessingInk" xmlns:wne="http://schemas.microsoft.com/office/word/2006/wordml" xmlns:wps="http://schemas.microsoft.com/office/word/2010/wordprocessingShape" mc:Ignorable="w14 wp14"><w:body>'+body+'<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="720" w:right="720" w:bottom="720" w:left="900" w:header="708" w:footer="708" w:gutter="0"/></w:sectPr></w:body></w:document>';
+}
+
+// ─── ZIP BUILDER ─────────────────────────────────────────────
+function zipFiles(files){
+  var parts=[],centralDir=[],offset=0;
+  function crc32(buf){var crc=0xFFFFFFFF,table=[];for(var i=0;i<256;i++){var c=i;for(var j=0;j<8;j++)c=(c&1)?(0xEDB88320^(c>>>1)):(c>>>1);table[i]=c;}for(var k=0;k<buf.length;k++)crc=table[(crc^buf[k])&0xFF]^(crc>>>8);return(crc^0xFFFFFFFF)>>>0;}
+  function strToBytes(s){var b=[];for(var i=0;i<s.length;i++){var c=s.charCodeAt(i);if(c<128){b.push(c);}else if(c<2048){b.push(0xC0|(c>>6));b.push(0x80|(c&63));}else{b.push(0xE0|(c>>12));b.push(0x80|((c>>6)&63));b.push(0x80|(c&63));}}return new Uint8Array(b);}
+  function u16(n){return[n&0xFF,(n>>8)&0xFF];}
+  function u32(n){n=n>>>0;return[n&0xFF,(n>>8)&0xFF,(n>>16)&0xFF,(n>>24)&0xFF];}
+  function concat(arrays){var total=arrays.reduce(function(s,a){return s+a.length;},0),out=new Uint8Array(total),off=0;arrays.forEach(function(a){out.set(a,off);off+=a.length;});return out;}
+  Object.keys(files).forEach(function(name){
+    var data=strToBytes(files[name]),nb=strToBytes(name),crc=crc32(data);
+    var local=concat([new Uint8Array([0x50,0x4B,0x03,0x04,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]),new Uint8Array(u32(crc)),new Uint8Array(u32(data.length)),new Uint8Array(u32(data.length)),new Uint8Array(u16(nb.length)),new Uint8Array([0x00,0x00]),nb,data]);
+    var central=concat([new Uint8Array([0x50,0x4B,0x01,0x02,0x14,0x00,0x14,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]),new Uint8Array(u32(crc)),new Uint8Array(u32(data.length)),new Uint8Array(u32(data.length)),new Uint8Array(u16(nb.length)),new Uint8Array([0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00]),new Uint8Array(u32(offset)),nb]);
+    parts.push(local);centralDir.push(central);offset+=local.length;
+  });
+  var cb=concat(centralDir),te=Object.keys(files).length;
+  var eocd=concat([new Uint8Array([0x50,0x4B,0x05,0x06,0x00,0x00,0x00,0x00]),new Uint8Array(u16(te)),new Uint8Array(u16(te)),new Uint8Array(u32(cb.length)),new Uint8Array(u32(offset)),new Uint8Array([0x00,0x00])]);
+  return new Blob([concat(parts.concat([cb,eocd]))],{type:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'});
+}
+
+function downloadBlob(blob,filename){
+  var url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=filename;document.body.appendChild(a);a.click();document.body.removeChild(a);
+  setTimeout(function(){URL.revokeObjectURL(url);},5000);
+}
+
+// ─── LIMPIAR ─────────────────────────────────────────────────
+function limpiar(){
+  if(!confirm('¿Limpiar todo el formulario?'))return;
+  document.querySelectorAll('input:not([type=radio]):not([type=checkbox])').forEach(function(i){i.value='';i.disabled=false;});
+  document.querySelectorAll('input[type=radio],input[type=checkbox]').forEach(function(i){i.checked=false;});
+  document.querySelectorAll('select').forEach(function(s){s.selectedIndex=0;});
+  document.querySelectorAll('textarea').forEach(function(t){t.value='';});
+  document.getElementById('firma-name').textContent='';
+  SELECTED.clear();
+  ['FL','FR','RL','RR'].forEach(function(p){TIRE_STATES[p]=0;document.getElementById('tire-'+p).className='tire s0';document.getElementById('ts-'+p).textContent='—';});
+  renderHotspots(currentView);
+  updSelList();
+  document.getElementById('err-box').classList.remove('show');
+}
+</script>
+</body>
+</html>
